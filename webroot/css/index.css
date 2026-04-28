@@ -1,4 +1,9 @@
+@import url('https://mui.kernelsu.org/internal/insets.css');
+
 :root {
+	--top-inset: var(--window-inset-top, 0px);
+	--bottom-inset: var(--window-inset-bottom, 0px);
+
   --background: #141414;
   --font: #fff;
   --desc: #c9c9c9;
@@ -27,11 +32,9 @@
 
 body {
   margin: 0;
+	padding-top: var(--top-inset);
+	padding-bottom: calc(var(--bottom-inset) + 32px);
   overscroll-behavior: none;
-
-  /* INFO: WebUI X insets */
-  padding-top: var(--window-inset-top);
-  padding-bottom: var(--window-inset-bottom);
 }
 
 a {
