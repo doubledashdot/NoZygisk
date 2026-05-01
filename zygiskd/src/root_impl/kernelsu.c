@@ -50,7 +50,7 @@ void ksu_get_existence(struct root_impl_state *state) {
 
   syscall(SYS_reboot, KSU_INSTALL_MAGIC1, KSU_INSTALL_MAGIC2, 0, (void *)&ksu_fd);
 
-  if (access("/data/adb/ksu/bin/ksud", F_OK) == -1) {
+  if (access("/data/adb/ksud", F_OK) == -1) {
     LOGW("KernelSU (ioctl) detected, but ksud not found.");
 
     state->state = Inexistent;
