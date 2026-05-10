@@ -9,8 +9,8 @@ VER_CODE ?= $(shell git -C "$(ROOT_DIR)" rev-list upstream/main --count 2>/dev/n
 VER_CODE2 ?= $(shell git -C "$(ROOT_DIR)" rev-list upstream/main..HEAD --count 2>/dev/null || echo 1)
 COMMIT_HASH ?= $(shell git -C "$(ROOT_DIR)" rev-parse --verify --short HEAD 2>/dev/null || echo unknown)
 
-MIN_KSU_VERSION ?= 10940
-MIN_KSUD_VERSION ?= 11425
+MIN_KSU_VERSION ?= 32481
+MIN_KSUD_VERSION ?= 31010
 
 MODULE_ID ?= nozygisk
 MODULE_NAME ?= NoZygisk
