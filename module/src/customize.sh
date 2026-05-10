@@ -106,10 +106,6 @@ chmod +x "$MODPATH/uninstall.sh"
 mv "$TMPDIR/sepolicy.rule" "$MODPATH"
 
 mkdir "$MODPATH/bin"
-mkdir "$MODPATH/webroot"
-
-ui_print "- Extracting webroot"
-unzip -o "$ZIPFILE" "webroot/*" -x "*.sha256" -d "$MODPATH"
 
 # INFO: Utilize the one with the biggest output, as some devices with Tango have the full list
 #         in ro.product.cpu.abilist but others only have a subset there, and the full list in
