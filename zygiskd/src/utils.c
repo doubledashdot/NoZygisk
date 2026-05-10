@@ -642,10 +642,6 @@ bool parse_mountinfo(const char *restrict pid, struct mountinfos *restrict mount
 }
 
 bool umount_root(void) {
-  if (access("/data/adb/modules/nozygisk/disable_unmount", F_OK) == 0) {
-		return false;
-  }
-
   /* INFO: We are already in the target pid mount namespace, so actually,
              when we use self here, we meant its pid.
   */
