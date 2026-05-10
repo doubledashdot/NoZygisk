@@ -22,13 +22,8 @@ struct zygisk_modules {
   size_t modules_count;
 };
 
-enum root_impl {
-  ROOT_IMPL_KERNELSU
-};
-
 struct rezygisk_info {
   struct zygisk_modules modules;
-  enum root_impl root_impl;
   pid_t pid;
   bool running;
 };

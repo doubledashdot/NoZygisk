@@ -65,14 +65,7 @@ int main(int argc, char **argv) {
     rezygiskd_get_info(&info);
 
     printf("Daemon process PID: %d\n", info.pid);
-
-    switch (info.root_impl) {
-      case ROOT_IMPL_KERNELSU: {
-        printf("Root implementation: KernelSU\n");
-
-        break;
-      }
-    }
+    printf("Root implementation: KernelSU\n");
 
     if (info.modules.modules_count != 0) {
       printf("Modules: %zu\n", info.modules.modules_count);
