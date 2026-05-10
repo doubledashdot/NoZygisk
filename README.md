@@ -1,7 +1,5 @@
 # ReZygisk
 
-[Español(Argentina)](/READMEs/README_es-AR.md)|[Bahasa Indonesia](/READMEs/README_id-ID.md)|[Português Brasileiro](/READMEs/README_pt-BR.md)|[Українська](/READMEs/README_uk-UA.md)|[Tiếng Việt](/READMEs/README_vi-VN.md)|
-
 ReZygisk is a fork of Zygisk Next, a standalone implementation of Zygisk, providing Zygisk API support for KernelSU, APatch and Magisk (Official and Kitsune).
 
 The codebase has been rewritten to C entirely, bringing not only a much cleaner codebase that is easier to follow, but also a lighter binaries that are also faster. Custom linkers also have been introduced to future-proof ReZygisk against future detections, not using system linker at all in normal circunstances, defeating any linker-based detection.
@@ -52,13 +50,6 @@ After flashing, check the installation logs to ensure there are no errors, and i
 ### 3. Verify the installation
 
 After rebooting, you can verify if ReZygisk is working properly by checking the module description in the `Modules` section of your root manager. The description should indicate that the necessary daemons are running. For example, if your environment supports both 64-bit and 32-bit, it should look similar to this: `[Monitor: ✅, ReZygisk 64-bit: ✅, ReZygisk 32-bit: ✅] Standalone implementation of Zygisk.`
-
-## Translation
-
-There are currently two different ways to contribute translations for ReZygisk:
-
-- For translations of the README, you can create a new file in the `READMEs` folder, following the naming convention of `README_<language>.md`, where `<language>` is the language code (e.g., `README_pt-BR.md` for Brazilian Portuguese), and open a pull request to the `main` branch with your changes.
-- For translations of the ReZygisk WebUI, you should first contribute to our [Crowdin](https://crowdin.com/project/rezygisk). Once approved retrieve the `.json` file from there and open a pull request with your changes -- adding the `.json` file to the `webroot/lang` folder and your credits to the `TRANSLATOR.md` file, in alphabetic order.
 
 ## Support
 
