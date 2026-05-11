@@ -1,18 +1,14 @@
-# ReZygisk
+# NoZygisk
 
-ReZygisk is a fork of Zygisk Next, a standalone implementation of Zygisk, providing Zygisk API support for KernelSU, APatch and Magisk (Official and Kitsune).
+NoZygisk is a fork of ReZygisk, a standalone implementation of the Zygisk API for KernelSU.
 
-The codebase has been rewritten to C entirely, bringing not only a much cleaner codebase that is easier to follow, but also a lighter binaries that are also faster. Custom linkers also have been introduced to future-proof ReZygisk against future detections, not using system linker at all in normal circunstances, defeating any linker-based detection.
+## Why does NoZygisk exist??
 
-## Why?
-
-The latest releases of Zygisk Next are not open-source, reserving entirely the code for its developers. Not only does that limit our ability to contribute to the project, but also impossibilities the audit of the code, which is a major security concern, as Zygisk Next is a module that runs with superuser (root) privileges, having access to the entire system.
-
-The Zygisk Next developers are famous and trusted in the Android community, however, this doesn't mean that the code is not malicious or vulnerable. We (PerformanC) understand they have their reasons to keep the code closed-source, but we believe the contrary.
+Because I (skye) thought it would be funny to maintain this.
 
 ## Advantages
 
-- FOSS (Forever)
+- None, it's the same as ReZygisk, but I do some non-sense modding to it.
 
 ## Dependencies
 
@@ -36,34 +32,23 @@ The selection of the build/zip is important, as it will determine how hidden and
 - `release` should be the one chosen for most cases, it removes app-level logging and offers more optimized binaries.
 - `debug`, however, offers the opposite, with heavy logging and no optimizations, For this reason, **you should only use it for debugging purposes** and **when obtaining logs for creating an Issue**.
 
-As for branches, you should always use the `main` branch, unless told otherwise by the developers, or if you want to test upcoming features and are aware of the risks involved.
-
 ### 2. Flash the zip
 
-After choosing the right build, you should flash it using your current root manager, like Magisk or KernelSU. You can do this by going to the `Modules` section of your root manager and selecting the zip you downloaded.
+After choosing the right build, you should flash it using KernelSU. You can do this by going to the `Modules` section and selecting the zip you downloaded.
 
 After flashing, check the installation logs to ensure there are no errors, and if everything is fine, you can reboot your device.
 
 > [!WARNING]
-> Magisk users should disable built-in Zygisk, as it will conflict with ReZygisk. This can be done by going to the `Settings` section of Magisk and disabling the `Zygisk` option.
+> NoZygisk requires that you already have the Zygisk modules you need pre-installed, as most of them check for ReZ or ZN, not for NoZ.
 
 ### 3. Verify the installation
 
-After rebooting, you can verify if ReZygisk is working properly by checking the module description in the `Modules` section of your root manager. The description should indicate that the necessary daemons are running. For example, if your environment supports both 64-bit and 32-bit, it should look similar to this: `[Monitor: ✅, ReZygisk 64-bit: ✅, ReZygisk 32-bit: ✅] Standalone implementation of Zygisk.`
+After rebooting, you can verify if NoZygisk is working properly by checking the module description in the `Modules` section of KernelSU. The description should indicate that the necessary daemons are running. It should look similar to this: `[Status: ✅, ReZygisk 64-bit: ✅] Standalone implementation of Zygisk.`
 
 ## Support
 
-For any question related to ReZygisk or other PerformanC projects, feel free to join any of the following channels below:
-
-- Discord Channel: [PerformanC](https://discord.gg/uPveNfTuCJ)
-- ReZygisk Telegram Channel: [@rezygisk](https://t.me/rezygisk)
-- PerformanC Telegram Channel: [@performancorg](https://t.me/performancorg)
-- PerformanC Signal Group: [@performanc](https://signal.group/#CjQKID3SS8N5y4lXj3VjjGxVJnzNsTIuaYZjj3i8UhipAS0gEhAedxPjT5WjbOs6FUuXptcT)
-
-## Contribution
-
-It is mandatory to follow PerformanC's [Contribution Guidelines](https://github.com/PerformanC/contributing) to contribute to ReZygisk. Following its Security Policy, Code of Conduct, and syntax standard.
+There isn't any as of now lmao, you have to rely on Github Issues and my mood.
 
 ## License
 
-ReZygisk is licensed under [AGPL 3.0](./LICENSE). You can read more about it on [Open Source Initiative](https://opensource.org/licenses/AGPL-3.0).
+NoZygisk is licensed under [AGPL 3.0](./LICENSE). You can read more about it on [Open Source Initiative](https://opensource.org/licenses/AGPL-3.0).
