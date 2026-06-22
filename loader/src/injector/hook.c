@@ -378,70 +378,141 @@ static bool can_hook_jni = false;
 static jint MODIFIER_NATIVE = 0;
 static jmethodID member_getModifiers = NULL;
 
-void hook_jni_methods(JNIEnv *env, const char *clz, JNINativeMethod *methods, int numMethods) {
-	if (!can_hook_jni) return;
+void hook_jni_methods(JNIEnv *env, const char *clz, JNINativeMethod *methods, int methods_count, bool is_rz) {
+  if (!can_hook_jni) return;
 
 	jclass clazz = (*env)->FindClass(env, clz);
 	if (!clazz) {
 		(*env)->ExceptionClear(env);
 
-		memset(methods, 0, numMethods * sizeof(JNINativeMethod));
+    memset(methods, 0, methods_count * sizeof(JNINativeMethod));
 
 		return;
 	}
 
-	JNINativeMethod hooks[32];
-	size_t hooks_count = 0;
+  if (is_rz) {
+    const char *method_name = methods[0].name;
 
-	for (int i = 0; i < numMethods; i++) {
-		bool is_static = false;
+    void *orig = NULL;
+    char *real_sig = NULL;
+    if (!amethod_find_native(env, clazz, method_name, &orig, &real_sig)) {
+      LOGE("Failed to find native method %s.%s for hooking", clz, method_name);
 
-		JNINativeMethod *nm = &methods[i];
-		jmethodID mid = (*env)->GetMethodID(env, clazz, nm->name, nm->signature);
-		if (!mid) {
-			(*env)->ExceptionClear(env);
-			mid = (*env)->GetStaticMethodID(env, clazz, nm->name, nm->signature);
-			is_static = true;
-		}
+      (*env)->DeleteLocalRef(env, clazz);
 
-		if (!mid) {
-			(*env)->ExceptionClear(env);
-			nm->fnPtr = NULL;
+      return;
+    }
 
-			continue;
-		}
+    if (!orig) {
+      LOGE("Failed to find the original address for native method %s.%s for hooking", clz, method_name);
 
-		jobject method = (*env)->ToReflectedMethod(env, clazz, mid, is_static);
-		jint modifier = (*env)->CallIntMethod(env, method, member_getModifiers);
-		if ((*env)->ExceptionCheck(env) || (modifier & MODIFIER_NATIVE) == 0) {
-			(*env)->ExceptionClear(env);
-			nm->fnPtr = NULL;
+      (*env)->DeleteLocalRef(env, clazz);
 
-			(*env)->DeleteLocalRef(env, method);
+      if (real_sig) free(real_sig);
 
-			continue;
-		}
+      return;
+    }
 
-		void *art_method = amethod_from_reflected_method(env, method);
-		if (hooks_count < 32)
-			hooks[hooks_count++] = *nm;
+    JNINativeMethod *method = NULL;
+    for (int i = 0; i < methods_count; i++) {
+      JNINativeMethod *arr_method = &methods[i];
 
-		void *orig = amethod_get_data((uintptr_t)art_method);
-		nm->fnPtr = orig;
+      if (strcmp(arr_method->name, method_name) != 0 || (arr_method->signature && real_sig && strcmp(arr_method->signature, real_sig) != 0)) {
+        arr_method->fnPtr = NULL;
 
-		LOGV("replaced %s %s orig %p: %s", clz, nm->name, orig, nm->signature);
+        continue;
+      }
 
-		(*env)->DeleteLocalRef(env, method);
-	}
+      method = arr_method;
 
-	if (hooks_count == 0) {
-		(*env)->DeleteLocalRef(env, clazz);
+      break;
+    }
 
-		return;
-	}
+    if (!method) {
+      LOGE("Failed to find method %s.%s with signature %s for hooking", clz, method_name, real_sig ? real_sig : "unknown");
 
-	(*env)->RegisterNatives(env, clazz, hooks, (jint)hooks_count);
-	(*env)->DeleteLocalRef(env, clazz);
+      (*env)->DeleteLocalRef(env, clazz);
+
+      free(real_sig);
+
+      return;
+    }
+
+    LOGD("Hooking JNI method %s.%s with signature %s, originally at %p", clz, method->name, method->signature, orig);
+
+    JNINativeMethod hooks[1] = {
+      {
+        .name = method->name,
+        .signature = method->signature,
+        .fnPtr = method->fnPtr /* INFO: The hook function */
+      }
+    };
+
+    method->fnPtr = orig;
+
+    (*env)->RegisterNatives(env, clazz, hooks, (jint)1);
+  } else {
+    JNINativeMethod hooks[32];
+    size_t hooks_count = 0;
+
+    for (int i = 0; i < methods_count; i++) {
+      bool is_static = false;
+
+      JNINativeMethod *nm = &methods[i];
+      jmethodID mid = (*env)->GetMethodID(env, clazz, nm->name, nm->signature);
+      if (!mid) {
+        (*env)->ExceptionClear(env);
+        mid = (*env)->GetStaticMethodID(env, clazz, nm->name, nm->signature);
+        is_static = true;
+      }
+
+      if (!mid) {
+        (*env)->ExceptionClear(env);
+        nm->fnPtr = NULL;
+
+        continue;
+      }
+
+      /* TODO: Replace with amethod_is_native  */
+      jobject method = (*env)->ToReflectedMethod(env, clazz, mid, is_static);
+      if (!method) {
+        (*env)->ExceptionClear(env);
+        nm->fnPtr = NULL;
+
+        continue;
+      }
+
+      jint modifier = (*env)->CallIntMethod(env, method, member_getModifiers);
+      if ((*env)->ExceptionCheck(env) || (modifier & MODIFIER_NATIVE) == 0) {
+        (*env)->ExceptionClear(env);
+        nm->fnPtr = NULL;
+
+        (*env)->DeleteLocalRef(env, method);
+
+        continue;
+      }
+
+      void *art_method = amethod_from_reflected_method(env, method);
+      if (hooks_count < 32)
+        hooks[hooks_count++] = *nm;
+
+      void *orig = amethod_get_data((uintptr_t)art_method);
+      nm->fnPtr = orig;
+
+      LOGD("Hooking JNI method %s.%s with signature %s, originally at %p", clz, nm->name, nm->signature, orig);
+
+      (*env)->DeleteLocalRef(env, method);
+    }
+
+    if (hooks_count == 0) {
+      (*env)->DeleteLocalRef(env, clazz);
+
+      return;
+    }
+
+    (*env)->RegisterNatives(env, clazz, hooks, (jint)hooks_count);
+  }
+  (*env)->DeleteLocalRef(env, clazz);
 }
 
 /* INFO: JNI method hook definitions */
@@ -533,6 +604,12 @@ static void api_plt_hook_register(const char *regex, const char *symbol, void *f
 	g_ctx->register_info_count++;
 
 	pthread_mutex_unlock(&g_ctx->hook_info_lock);
+}
+
+static void api_hook_jni_native_methods(JNIEnv *env, const char *class_name, JNINativeMethod *methods, int methods_count) {
+  if (!g_ctx || !env || !class_name || !methods || methods_count == 0) return;
+
+  hook_jni_methods(env, class_name, methods, methods_count, false);
 }
 
 static void api_plt_hook_exclude(const char *regex, const char *symbol) {
@@ -788,16 +865,16 @@ bool rezygisk_module_register(struct rezygisk_api *api, struct rezygisk_abi cons
 	m->abi = *target_module;
 	m->api = *api;
 
-	api->hook_jni_native_methods = hook_jni_methods;
-	if (target_module->api_version >= 4) {
-		api->plt_hook_register_v4 = api_plt_hook_register_v4;
-		api->exempt_fd = api_exempt_fd;
-		api->plt_hook_commit = api_plt_hook_commit_v4;
-	} else {
-		api->plt_hook_register = api_plt_hook_register;
-		api->plt_hook_exclude = api_plt_hook_exclude;
-		api->plt_hook_commit = api_plt_hook_commit;
-	}
+  api->hook_jni_native_methods = api_hook_jni_native_methods;
+  if (target_module->api_version >= 4) {
+    api->plt_hook_register_v4 = api_plt_hook_register_v4;
+    api->exempt_fd = api_exempt_fd;
+    api->plt_hook_commit = api_plt_hook_commit_v4;
+  } else {
+    api->plt_hook_register = api_plt_hook_register;
+    api->plt_hook_exclude = api_plt_hook_exclude;
+    api->plt_hook_commit = api_plt_hook_commit;
+  }
 
 	api->connect_companion = api_connect_companion;
 	api->set_option = api_set_option;

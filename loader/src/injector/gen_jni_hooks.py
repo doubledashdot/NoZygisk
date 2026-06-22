@@ -290,10 +290,10 @@ static void do_hook_zygote(JNIEnv *env) {
 	JNINativeMethod hooks[3];
 	int hooks_count = 0;
 
-	const char *clz = "com/android/internal/os/Zygote";
-	hook_jni_methods(env, clz, nativeForkAndSpecialize_methods, nativeForkAndSpecialize_methods_count);
-	for (int i = 0; i < nativeForkAndSpecialize_methods_count; i++) {
-		if (!nativeForkAndSpecialize_methods[i].fnPtr) continue;
+  const char *clz = "com/android/internal/os/Zygote";
+  hook_jni_methods(env, clz, nativeForkAndSpecialize_methods, nativeForkAndSpecialize_methods_count, true);
+  for (int i = 0; i < nativeForkAndSpecialize_methods_count; i++) {
+    if (!nativeForkAndSpecialize_methods[i].fnPtr) continue;
 
 		nativeForkAndSpecialize_orig = nativeForkAndSpecialize_methods[i].fnPtr;
 		hooks[hooks_count++] = nativeForkAndSpecialize_methods[i];
@@ -301,9 +301,9 @@ static void do_hook_zygote(JNIEnv *env) {
 		break;
 	}
 
-	hook_jni_methods(env, clz, nativeSpecializeAppProcess_methods, nativeSpecializeAppProcess_methods_count);
-	for (int i = 0; i < nativeSpecializeAppProcess_methods_count; i++) {
-		if (!nativeSpecializeAppProcess_methods[i].fnPtr) continue;
+  hook_jni_methods(env, clz, nativeSpecializeAppProcess_methods, nativeSpecializeAppProcess_methods_count, true);
+  for (int i = 0; i < nativeSpecializeAppProcess_methods_count; i++) {
+    if (!nativeSpecializeAppProcess_methods[i].fnPtr) continue;
 
 		nativeSpecializeAppProcess_orig = nativeSpecializeAppProcess_methods[i].fnPtr;
 		hooks[hooks_count++] = nativeSpecializeAppProcess_methods[i];
@@ -311,9 +311,9 @@ static void do_hook_zygote(JNIEnv *env) {
 		break;
 	}
 
-	hook_jni_methods(env, clz, nativeForkSystemServer_methods, nativeForkSystemServer_methods_count);
-	for (int i = 0; i < nativeForkSystemServer_methods_count; i++) {
-		if (!nativeForkSystemServer_methods[i].fnPtr) continue;
+  hook_jni_methods(env, clz, nativeForkSystemServer_methods, nativeForkSystemServer_methods_count, true);
+  for (int i = 0; i < nativeForkSystemServer_methods_count; i++) {
+    if (!nativeForkSystemServer_methods[i].fnPtr) continue;
 
 		nativeForkSystemServer_orig = nativeForkSystemServer_methods[i].fnPtr;
 		hooks[hooks_count++] = nativeForkSystemServer_methods[i];
