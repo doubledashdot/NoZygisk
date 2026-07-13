@@ -9,7 +9,7 @@ OBJ_DIR = $(OBJ_ROOT)/$(ARCH)
 ZKSU_VERSION ?= $(VER_NAME)
 
 ifeq ($(BUILD_TYPE),release)
-	TYPE_CFLAGS = -O3 -ffast-math -flto -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-signed-zeros -fno-trapping-math -DNDEBUG
+	TYPE_CFLAGS = -O3 -ffast-math -flto -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-signed-zeros -fno-trapping-math -DNDEBUG -funroll-loops
 	TYPE_LDFLAGS = -Wl,--gc-sections -Wl,--strip-all -Wl,--relax -flto=auto
 else
 	TYPE_CFLAGS = -g -O0 -DDEBUG
@@ -21,7 +21,7 @@ ZYGISKD_CFLAGS = -D_GNU_SOURCE -std=c99 -Wpedantic -Wall -Wextra -Werror	\
 			 	 -Wno-fixed-enum-extension -Wno-unknown-warning-option		\
 				 -Wno-c23-extensions -Wconversion												 \
 				 -DMIN_KSU_VERSION=$(MIN_KSU_VERSION)										 \
-				 '-DZKSU_VERSION="$(ZKSU_VERSION)"'
+				 '-DZKSU_VERSION="$(ZKSU_VERSION)"' -funroll-loops -fomit-frame-pointer
 
 SRCS = src/root_impl/common.c				\
 		 src/root_impl/kernelsu.c															 \
