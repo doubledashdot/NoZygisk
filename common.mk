@@ -4,9 +4,9 @@ API_LEVEL ?= 25
 ARCHS ?= arm64-v8a armeabi-v7a x86 x86_64
 ARCH ?= arm64-v8a
 
-VER_NAME ?= v0.0.1
-VER_CODE ?= $(shell git -C "$(ROOT_DIR)" rev-list upstream/main --count 2>/dev/null || echo 1)
-VER_CODE2 ?= $(shell git -C "$(ROOT_DIR)" rev-list upstream/main..HEAD --count 2>/dev/null || echo 1)
+VER_NAME ?= v0.0.2
+VER_CODE ?= $(shell git -C "$(ROOT_DIR)" rev-list main --count 2>/dev/null || echo 1)
+VER_CODE2 ?= $(shell git -C "$(ROOT_DIR)" rev-list main..HEAD --count 2>/dev/null || echo 1)
 COMMIT_HASH ?= $(shell git -C "$(ROOT_DIR)" rev-parse --verify --short HEAD 2>/dev/null || echo unknown)
 
 MIN_KSU_VERSION ?= 32481
