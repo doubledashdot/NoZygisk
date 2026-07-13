@@ -64,7 +64,7 @@ $(MODULE_DONE): $(LOADER_DONE) $(ZYGISKD_DONE) $(MODULE_INPUTS)
 	@mkdir -p $(MODULE_OUT)
 
 	@echo "Copying module files..."
-	@cp module/src/verify.sh module/src/sepolicy.rule module/src/nozygisk.sh $(MODULE_OUT)/
+	@cp module/src/verify.sh module/src/sepolicy.rule module/src/post-mount.sh $(MODULE_OUT)/
 
 	@echo "Customizing module.prop..."
 	@sed -e 's/$${moduleId}/$(MODULE_ID)/g'																						 \

@@ -5,9 +5,6 @@ set -e
 export TMP_PATH=/data/adb/nozygisk
 rm -rf "$TMP_PATH"
 
-rm -f /data/adb/post-fs-data.d/nozygisk.sh
-rm -f /data/adb/post-mount.d/nozygisk.sh
-
 # INFO: Only removes if dir is empty
 rmdir /data/adb/post-fs-data.d
 rmdir /data/adb/post-mount.d
