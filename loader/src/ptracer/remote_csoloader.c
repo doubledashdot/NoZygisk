@@ -541,19 +541,6 @@ static bool apply_rela_section(int pid, int fd, const struct elf_dyn_info *info,
 
 				return false;
 			}
-		#elif defined(__x86_64__)
-			if (type == R_X86_64_RELATIVE) {
-				value = (ElfW(Addr))load_bias + (ElfW(Addr))r.r_addend;
-			} else if (type == R_X86_64_GLOB_DAT || type == R_X86_64_JUMP_SLOT || type == R_X86_64_64) {
-				uintptr_t sym_addr = 0;
-				if (!resolve_symbol_addr(fd, info, local_map, remote_map, needed_paths, load_bias, sym, &sym_addr))
-					return false;
-
-				value = sym_addr ? (ElfW(Addr))sym_addr + (ElfW(Addr))r.r_addend : 0;
-			} else {
-				LOGE("Unsupported x86_64 RELA type %u", type);
-				return false;
-			}
 		#else
 			(void) info; (void) local_map; (void) remote_map; (void) sym; (void) type; (void) needed_paths;
 
@@ -608,29 +595,6 @@ static bool apply_rel_section(int pid, int fd, const struct elf_dyn_info *info,
 				}
 			} else {
 				LOGE("Unsupported ARM REL type %u", type);
-
-				return false;
-			}
-		#elif defined(__i386__)
-			if (type == R_386_RELATIVE) {
-				if (!read_remote_addr(pid, target, &addend)) return false;
-
-				value = (ElfW(Addr))load_bias + addend;
-			} else if (type == R_386_GLOB_DAT || type == R_386_JMP_SLOT || type == R_386_32) {
-				uintptr_t sym_addr = 0;
-				if (!resolve_symbol_addr(fd, info, local_map, remote_map, needed_paths, load_bias, sym, &sym_addr))
-					return false;
-
-				if (sym_addr == 0) value = 0;
-				else if (type == R_386_32) {
-					if (!read_remote_addr(pid, target, &addend)) return false;
-
-					value = (ElfW(Addr))sym_addr + addend;
-				} else {
-					value = (ElfW(Addr))sym_addr;
-				}
-			} else {
-				LOGE("Unsupported i386 REL type %u", type);
 
 				return false;
 			}

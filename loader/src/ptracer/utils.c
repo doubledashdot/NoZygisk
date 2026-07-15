@@ -62,13 +62,6 @@ ssize_t read_proc(int pid, uintptr_t remote_addr, void *buf, size_t len) {
 }
 
 bool get_regs(int pid, struct user_regs_struct *regs) {
-	#if defined(__x86_64__) || defined(__i386__)
-		if (ptrace(PTRACE_GETREGS, pid, 0, regs) == -1) {
-			PLOGE("getregs");
-
-			return false;
-		}
-	#elif defined(__aarch64__) || defined(__arm__)
 		struct iovec iov = {
 			.iov_base = regs,
 			.iov_len = sizeof(struct user_regs_struct),
@@ -85,19 +78,11 @@ bool get_regs(int pid, struct user_regs_struct *regs) {
 
 			return true;
 		}
-	#endif
 
 	return true;
 }
 
 bool set_regs(int pid, struct user_regs_struct *regs) {
-	#if defined(__x86_64__) || defined(__i386__)
-		if (ptrace(PTRACE_SETREGS, pid, 0, regs) == -1) {
-			PLOGE("setregs");
-
-			return false;
-		}
-	#elif defined(__aarch64__) || defined(__arm__)
 		struct iovec iov = {
 			.iov_base = regs,
 			.iov_len = sizeof(struct user_regs_struct),
@@ -114,7 +99,6 @@ bool set_regs(int pid, struct user_regs_struct *regs) {
 
 			return true;
 		}
-	#endif
 
 	return true;
 }
@@ -231,43 +215,7 @@ uintptr_t remote_call(int pid, struct user_regs_struct *regs, uintptr_t func_add
 		LOGV("arg %p", (void *)args[i]);
 	}
 
-	#if defined(__x86_64__)
-		if (args_size >= 1) regs->rdi = args[0];
-		if (args_size >= 2) regs->rsi = args[1];
-		if (args_size >= 3) regs->rdx = args[2];
-		if (args_size >= 4) regs->rcx = args[3];
-		if (args_size >= 5) regs->r8 = args[4];
-		if (args_size >= 6) regs->r9 = args[5];
-		if (args_size > 6) {
-			long remain = (args_size - 6L) * sizeof(long);
-			align_stack(regs, remain);
-
-			if (write_proc(pid, (uintptr_t) regs->REG_SP, &args[6], remain) != remain)
-				LOGE("failed to push arguments");
-		}
-
-		regs->REG_SP -= sizeof(long);
-
-		if (write_proc(pid, (uintptr_t) regs->REG_SP, &return_addr, sizeof(return_addr)) != sizeof(return_addr))
-			LOGE("failed to write return addr");
-
-		regs->REG_IP = func_addr;
-	#elif defined(__i386__)
-		if (args_size > 0) {
-			long remain = (args_size) * sizeof(long);
-			align_stack(regs, remain);
-
-			if (write_proc(pid, (uintptr_t) regs->REG_SP, args, remain) != remain)
-				LOGE("failed to push arguments");
-		}
-
-		regs->REG_SP -= sizeof(long);
-
-		if (write_proc(pid, (uintptr_t) regs->REG_SP, &return_addr, sizeof(return_addr)) != sizeof(return_addr))
-			LOGE("failed to write return addr");
-
-		regs->REG_IP = func_addr;
-	#elif defined(__aarch64__)
+	#if defined(__aarch64__)
 		for (size_t i = 0; i < args_size && i < 8; i++) {
 			regs->regs[i] = args[i];
 		}
@@ -357,8 +305,7 @@ int fork_dont_care() {
 }
 
 uintptr_t find_syscall_gadget(int pid, struct maps_info *remote_map) {
-	/* INFO: Find a syscall instruction (svc #0 on aarch64, svc 0 on arm32,
-					 syscall on x86_64, int 0x80 on i386) in executable memory.
+	/* INFO: Find a syscall instruction (svc #0 on aarch64, svc 0 on arm32) in executable memory.
 					 We search vdso first as it's always present. */
 
 	#if defined(__aarch64__)
@@ -368,14 +315,6 @@ uintptr_t find_syscall_gadget(int pid, struct maps_info *remote_map) {
 	#elif defined(__arm__)
 		const uint16_t thumb_svc_insn = 0xDF00;
 		const uint32_t arm_svc_insn = 0xEF000000;
-	#elif defined(__x86_64__)
-		const uint16_t svc_insn = 0x050F; /* syscall */
-		const size_t insn_size = 2;
-		const uintptr_t insn_bias = 0;
-	#elif defined(__i386__)
-		const uint16_t svc_insn = 0x80CD; /* int 0x80 */
-		const size_t insn_size = 2;
-		const uintptr_t insn_bias = 0;
 	#endif
 
 	for (int pass = 0; pass < 2; pass++) {
@@ -933,42 +872,6 @@ long remote_syscall(int pid, struct user_regs_struct *regs, uintptr_t syscall_ga
 		} else {
 			regs->uregs[16] &= ~CPSR_T_MASK;
 		}
-	#elif defined(__x86_64__)
-		/* rax = syscall number, rdi,rsi,rdx,r10,r8,r9 = args */
-		regs->REG_SYSNR = sysnr;
-		regs->rax = sysnr;
-		regs->rdi = 0;
-		regs->rsi = 0;
-		regs->rdx = 0;
-		regs->r10 = 0;
-		regs->r8 = 0;
-		regs->r9 = 0;
-
-		if (args_size >= 1) regs->rdi = args[0];
-		if (args_size >= 2) regs->rsi = args[1];
-		if (args_size >= 3) regs->rdx = args[2];
-		if (args_size >= 4) regs->r10 = args[3];
-		if (args_size >= 5) regs->r8 = args[4];
-		if (args_size >= 6) regs->r9 = args[5];
-		regs->REG_IP = syscall_gadget;
-	#elif defined(__i386__)
-		/* eax = syscall number, ebx,ecx,edx,esi,edi,ebp = args */
-		regs->REG_SYSNR = sysnr;
-		regs->eax = sysnr;
-		regs->ebx = 0;
-		regs->ecx = 0;
-		regs->edx = 0;
-		regs->esi = 0;
-		regs->edi = 0;
-		regs->ebp = 0;
-
-		if (args_size >= 1) regs->ebx = args[0];
-		if (args_size >= 2) regs->ecx = args[1];
-		if (args_size >= 3) regs->edx = args[2];
-		if (args_size >= 4) regs->esi = args[3];
-		if (args_size >= 5) regs->edi = args[4];
-		if (args_size >= 6) regs->ebp = args[5];
-		regs->REG_IP = syscall_gadget;
 	#endif
 
 	if (!set_regs(pid, regs)) {
